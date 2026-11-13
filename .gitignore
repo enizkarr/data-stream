@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets and local config
+.env
+
+# Local data (the lake lives in MinIO; this is only for local experiments)
+data/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/.user.yml
+
+# Airflow
+orchestration/logs/
+airflow.cfg
+airflow.db
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
