@@ -26,7 +26,7 @@ Airflow schedules the whole flow hourly. Everything runs in Docker Compose.
 | Repo skeleton | done |
 | Ingestion: extract to bronze (local files) | done |
 | Ingestion: bronze → silver Parquet (local files) | done |
-| Ingestion: load into Postgres | not started |
+| Ingestion: silver → Postgres `raw` (upsert) | done |
 | dbt models and tests | not started |
 | Airflow DAG | not started |
 | Docker Compose: Postgres + MinIO | done |
@@ -89,9 +89,20 @@ python -m ingestion.transform --all                       # every extraction
 python -m ingestion.transform --date 2026-11-13 --hour 20 # a specific one
 ```
 
+Load silver Parquet into Postgres `raw.weather` and `raw.air_quality` (needs `docker compose up -d`):
+
+```powershell
+python -m ingestion.load                             # the latest silver partition
+python -m ingestion.load --all                       # every silver partition
+python -m ingestion.load --date 2026-11-13 --hour 20 # a specific one
+```
+
+Rows are keyed on `(city, time)`. When the same hour arrives again, the copy with the newer
+`extracted_at` wins, so forecasts get replaced by later readings and re-running is safe.
+
 Checks:
 
 ```powershell
 ruff check .
-pytest
+pytest            # tests/test_load.py uses the Docker Postgres; skipped if it is not running
 ```

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from psycopg.conninfo import make_conninfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,3 +36,19 @@ class Settings(BaseSettings):
     weather_api_url: str = "https://api.open-meteo.com/v1/forecast"
     air_quality_api_url: str = "https://air-quality-api.open-meteo.com/v1/air-quality"
     data_dir: Path = Path("data")
+
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_db: str = "weather"
+    postgres_user: str = "weather"
+    postgres_password: str = ""
+
+    def postgres_conninfo(self) -> str:
+        """Connection string for psycopg, built from the POSTGRES_* settings."""
+        return make_conninfo(
+            host=self.postgres_host,
+            port=self.postgres_port,
+            dbname=self.postgres_db,
+            user=self.postgres_user,
+            password=self.postgres_password,
+        )
