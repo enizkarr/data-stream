@@ -29,7 +29,8 @@ Airflow schedules the whole flow hourly. Everything runs in Docker Compose.
 | Ingestion: load into Postgres | not started |
 | dbt models and tests | not started |
 | Airflow DAG | not started |
-| Docker Compose | not started |
+| Docker Compose: Postgres + MinIO | done |
+| Docker Compose: Airflow, Metabase | not started |
 | CI (ruff, pytest, dbt build) | not started |
 | Metabase dashboard | not started |
 
@@ -37,6 +38,7 @@ Airflow schedules the whole flow hourly. Everything runs in Docker Compose.
 
 ```
 ingestion/            Python: extract from the API, convert to Parquet, load into Postgres
+docker/               init scripts mounted into the containers
 dbt_project/          dbt models (staging, intermediate, marts) and tests
 orchestration/dags/   Airflow DAGs
 tests/                pytest for the ingestion code
@@ -53,6 +55,24 @@ python -m venv .venv
 pip install -e ".[dev]"
 Copy-Item .env.example .env   # then change the passwords
 ```
+
+Start Postgres and MinIO (Docker Desktop must be running):
+
+```powershell
+docker compose up -d
+docker compose ps        # postgres and minio should show "healthy"
+```
+
+- Postgres: `localhost:5432`, database/user/password from `.env`. Schemas `raw`,
+  `staging`, `intermediate` and `marts` are created on first start
+  (`docker/postgres/init/`).
+- MinIO console: <http://localhost:9001> (log in with `MINIO_ROOT_USER` /
+  `MINIO_ROOT_PASSWORD`). The `minio-init` job creates the `LAKE_BUCKET` bucket and exits.
+  MinIO no longer publishes Docker images, so this uses the `pgsty/minio` and `pgsty/mc`
+  community builds of the same code.
+
+Stop with `docker compose down`. Add `-v` to also delete the data volumes (a full reset;
+init scripts run again on the next start).
 
 Extract the latest readings for every city into `data/bronze/`:
 
